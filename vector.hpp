@@ -107,7 +107,17 @@ namespace lni {
         delete [] arr;
     }
 
-
+    template <typename T>
+	vector<T> & vector<T>::operator = (const vector<T> &other) {
+		size_type i;
+		if (rsrv_sz < other.vec_sz) {
+			rsrv_sz = other.vec_sz << 2;
+			reallocate();
+		}
+		for (i = 0; i < other.vec_sz; ++i)
+			arr[i] = other.arr[i];
+		vec_sz = other.vec_sz;
+	}
 
 }
 
