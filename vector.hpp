@@ -1,4 +1,8 @@
-
+#include <cstddef>
+#include <cstring>
+#include <utility>
+#include <iterator>
+#include <stdexcept>
 
 
 #ifndef LNI_VECTOR
@@ -21,11 +25,19 @@ namespace lni {
             vector(size_type n, const T &val);
             vector(typename vector<T>::iterator , typename vector<T>::iterator );
             vector(std::initializer_list<T> lst);
+            vector(const vector<T> &);
+            vector(vector<T> &&) noexcept;
+            ~vector();
+            vector<T> & operator = (const vector<T> &);
+            vector<T> & operator = (vector<T> &&);
+            vector<T> & operator = (std::initializer_list<T>);
 
         private:
             size_type rsrv_sz = 4;
             size_type vec_sz = 0;
             T *arr;
+
+            inline void reallocate();
 
     };
 
@@ -113,6 +125,8 @@ namespace lni {
 		if (rsrv_sz < other.vec_sz) {
 			rsrv_sz = other.vec_sz << 2;
 			reallocate();
+			// I think this should be called off and have
+			//another function where we could direcly write other.arr into arr..
 		}
 		for (i = 0; i < other.vec_sz; ++i)
 			arr[i] = other.arr[i];
@@ -123,7 +137,7 @@ namespace lni {
 	template <typename T>
 	vector<T> & vector<T>::operator = (vector<T> &&other) {
 		size_type i;
-		if (rsrv_sz < other.vec_sz) {&
+		if (rsrv_sz < other.vec_sz) {
 			rsrv_sz = other.vec_sz << 2;
 			reallocate();
 		}
@@ -132,6 +146,28 @@ namespace lni {
 		vec_sz = other.vec_sz;
 	}
 
+	template <typename T>
+	vector<T> & vector<T>::operator = (std::initializer_list<T> lst) {
+        if(rsrv_sz < lst.size()) {
+            rsrv_sz = lst.size() << 2;
+            reallocate();
+        }
+        vec_sz = 0;
+        for (auto &item: lst) {
+            arr[vec_sz++] = item;
+        }
+	}
+
+    template <typename T>
+    void vector<T>::assign()
+
+    template <typename T>
+    inline void vector<T>::reallocate() {
+        T *tarr = new T[rsrv_sz];
+        memcpy(tarr, arr, vec_sz * sizeof(T));
+        delete [] arr;
+        arr = tarr;
+    }
 }
 
 #endif // LNI_VECTOR
