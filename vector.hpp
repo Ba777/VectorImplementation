@@ -19,7 +19,7 @@ namespace lni {
         public:
             typedef unsigned int                          size_type;
             typedef T *                                   iterator;
-
+            typedef const T *                             const_iterator;
             vector() noexcept;
             explicit vector(size_type n);
             vector(size_type n, const T &val);
@@ -27,10 +27,23 @@ namespace lni {
             vector(std::initializer_list<T> lst);
             vector(const vector<T> &);
             vector(vector<T> &&) noexcept;
+
             ~vector();
+
             vector<T> & operator = (const vector<T> &);
             vector<T> & operator = (vector<T> &&);
             vector<T> & operator = (std::initializer_list<T>);
+
+            void assign(typename vector<T>::size_type, const T &);
+            void assign(typename vector<T>::iterator, typename vector<T>::iterator);
+            void assign(std::initializer_list<T>);
+
+            iterator begin() noexcept;
+            const_iterator cbegin() const noexcept;
+            iterator end() noexcept;
+            const_iterator cend() const noexcept;
+
+            size_type size() const noexcept;
 
         private:
             size_type rsrv_sz = 4;
@@ -159,7 +172,63 @@ namespace lni {
 	}
 
     template <typename T>
-    void vector<T>::assign()
+    void vector<T>::assign(typename vector<T>::size_type count, const T &value) {
+        size_type i;
+        if (count > rsrv_sz) {
+                rsrv_sz = count << 2;
+                reallocate();
+        }
+        for (i = 0; i < count; ++i) {
+            arr[i] = value;
+        }
+        vec_sz = count;
+    }
+
+    template <typename T>
+    void vector<T>::assign(typename vector<T>::iterator first, typename vector<T>::iterator last) {
+        size_type i, count = last - first;
+        if (count > rsrv_sz) {
+            rsrv_sz = count << 2;
+            reallocate();
+        }
+        for (i = 0; i < count; ++i, ++first) {
+            arr[i] = *first;
+        }
+        vec_sz = count;
+    }
+
+    template <typename T>
+    void vector<T>::assign(std::initializer_list<T> lst) {
+        size_type i, count = lst.size();
+        if (count > rsrv_sz) {
+            rsrv_sz = count << 2;
+            reallocate();
+        }
+        i = 0;
+        for (auto &item: lst) {
+            arr[i++] = item;
+        }
+    }
+
+    template <typename T>
+    typename vector<T>::iterator vector<T>::begin() noexcept {
+        return arr;
+    }
+
+    template <typename T>
+    typename vector<T>::const_iterator vector<T>::cbegin() const noexcept {
+        return arr;
+    }
+
+    template <typename T>
+    typename vector<T>::iterator vector<T>::end() noexcept {
+        return arr + vec_sz;
+    }
+
+    template <typename T>
+    typename vector<T>::const_iterator vector<T>::cend() const noexcept {
+        return arr + vec_sz;
+    }
 
     template <typename T>
     inline void vector<T>::reallocate() {
@@ -168,6 +237,12 @@ namespace lni {
         delete [] arr;
         arr = tarr;
     }
+
+    template <typename T>
+	typename vector<T>::size_type vector<T>::size() const noexcept{
+		return vec_sz;
+	}
+
 }
 
 #endif // LNI_VECTOR
