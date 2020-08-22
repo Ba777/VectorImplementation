@@ -20,6 +20,9 @@ namespace lni {
             typedef unsigned int                          size_type;
             typedef T *                                   iterator;
             typedef const T *                             const_iterator;
+            typedef std::reverse_iterator<iterator>       reverse_iterator;
+            typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
             vector() noexcept;
             explicit vector(size_type n);
             vector(size_type n, const T &val);
@@ -38,12 +41,22 @@ namespace lni {
             void assign(typename vector<T>::iterator, typename vector<T>::iterator);
             void assign(std::initializer_list<T>);
 
-            iterator begin() noexcept;
-            const_iterator cbegin() const noexcept;
-            iterator end() noexcept;
-            const_iterator cend() const noexcept;
+            // iterators:
+			iterator begin() noexcept;
+			const_iterator cbegin() const noexcept;
+			iterator end() noexcept;
+			const_iterator cend() const noexcept;
+			reverse_iterator rbegin() noexcept;
+			const_reverse_iterator crbegin() const noexcept;
+			reverse_iterator rend() noexcept;
+			const_reverse_iterator crend() const noexcept;
 
-            size_type size() const noexcept;
+            bool empty() const noexcept;
+			size_type size() const noexcept;
+			size_type max_size() const noexcept;
+			size_type capacity() const noexcept;
+
+			void resize(size_type);
 
         private:
             size_type rsrv_sz = 4;
@@ -231,6 +244,27 @@ namespace lni {
     }
 
     template <typename T>
+    typename vector<T>::reverse_iterator vector<T>::rbegin() noexcept {
+        return reverse_iterator(arr + vec_sz);
+    }
+
+    template <typename  T>
+    typename vector<T>::reverse_iterator vector<T>::rend() noexcept {
+        return reverse_iterator(arr);
+    }
+
+    template  <typename T>
+    typename vector<T>::const_reverse_iterator vector<T>::crbegin() const noexcept {
+        return reverse_iterator(arr + vec_sz);
+    }
+
+    template <typename T>
+    typename vector<T>::const_reverse_iterator vector<T>::crend() const noexcept {
+        return reverse_iterator(arr);
+    }
+
+
+    template <typename T>
     inline void vector<T>::reallocate() {
         T *tarr = new T[rsrv_sz];
         memcpy(tarr, arr, vec_sz * sizeof(T));
@@ -243,6 +277,70 @@ namespace lni {
 		return vec_sz;
 	}
 
+	template <typename T>
+	bool vector<T>::empty() const noexcept {
+        return vec_sz == 0;
+	}
+
+    template <typename T>
+    typename vector<T>::size_type vector<T>::max_size() const noexcept {
+        return LNI_VECTOR_MAX_SZ;
+    }
+
+    template <typename T>
+    typename vector<T>::size_type vector<T>::capacity() const noexcept {
+        return rsrv_sz;
+    }
+
+    template <typename T>
+    void vector<T>::resize(typename vector<T>::size_type sz) {
+        if(sz > vec_sz) {
+           if(sz > rsrv_sz) {
+                rsrv_sz = sz;
+                reallocate();
+           }
+        } else {
+            size_type i;
+            for (i = vec_sz; i > sz; --i) {
+                arr[i].~T();
+            }
+        }
+        vec_sz = sz;
+    }
+
+    template <typename T>
+    void vector<T>::resize(typename vector<T>::size_type sz, const T &c) {
+        if (sz > vec_sz) {
+            if (sz > rsrv_sz) {
+                rsrv_sz = sz;
+                reallocate();
+            }
+            size_type i;
+            for (i = vec_sz; i < sz; ++i) {
+                arr[i] = c;
+            }
+        } else {
+            size_type i;
+            for (i = vec_sz; i > sz; --i) {
+                arr[i].~T();
+            }
+            vec_sz = sz;
+        }
+    }
+
+    template <typename T>
+    void vector<T>::reserve(typename vector<T>::size_type _sz) {
+        if (_sz > rsrv_sz) {
+            rsrv_sz = _sz;
+            reallocate();
+        }
+    }
+
+    template <typename T>
+    void vector<T>::shrink_to_fit() {
+        rsrv_sz = vec_sz;
+        reallocate();
+    }
 }
 
 #endif // LNI_VECTOR
